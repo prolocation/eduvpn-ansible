@@ -1,0 +1,9 @@
+---
+
+- name: Prepare Debian
+  import_tasks: debian.yml
+  when: ansible_facts['os_family'] | lower == 'debian'
+
+- name: Prepare CentOS
+  import_tasks: redhat.yml
+  when: ansible_facts['os_family'] | lower == 'redhat'

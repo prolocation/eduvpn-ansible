@@ -1,0 +1,5 @@
+config_system_locale: 'nl_NL.UTF-8'
+config_system_language: 'nl_NL.UTF-8'
+self_signed_certs:
+  - key: "/etc/ssl/private/{{ ansible_hostname }}.key"
+    cert: "/etc/ssl/private/{{ ansible_hostname }}.cert"

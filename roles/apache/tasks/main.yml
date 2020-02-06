@@ -1,0 +1,84 @@
+---
+
+- name: Make sure prerequisite packages are enabled
+  package:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - apache2
+    - apache2-utils
+    - php-fpm
+
+- name: enable wanted apache modules
+  apache2_module:
+    state: present
+    name: "{{ item }}"
+  loop:
+    - ssl
+    - headers
+    - rewrite
+    - proxy
+    - proxy_fcgi
+    - socache_shmcb
+    - setenvif
+  notify: apache
+
+- name: enable configs
+  command: >-
+    a2enconf {{ item }}
+  args:
+    creates: "/etc/apache2/conf-enabled/{{ item }}.conf"
+  loop:
+    - php7.0-fpm
+    - vpn-server-api
+    - vpn-user-portal
+
+- name: Copy VPN configs
+  copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+  creates: "{ {item.dest }}"
+    
+  loop:
+    - { src: resources/ssl.debian.conf,
+        dest: /etc/apache2/conf-enabled/ssl.conf }
+    - { src: resources/vpn.example.debian.conf,
+        dest: "/etc/apache2/sites-available/{{ ansible_fqdn }}.conf" }
+    - { src: resources/localhost.debian.conf,
+        dest: /etc/apache2/sites-available/localhost.conf }
+
+- name: Read VPN virthualhost file
+  shell: cat /etc/apache2/sites-available/{{ ansible_fqdn }}.conf
+  register: vpnconfig
+
+- name: Rewrite inside of VPN config
+  replace:
+    path:  "/etc/apache2/sites-available/{{ ansible_fqdn }}.conf"
+    regexp: "vpn.example"
+    replace: "{{ ansible_fqdn }}"
+  notify: apache
+  when: vpnconfig.stdout.find(ansible_fqdn) != 1
+
+- name: PHP timezone setup 
+  copy:
+    src: resources/70-timezone.ini
+    dest: "/etc/php/7.0/mods-available/lc-timezone.ini"
+  register: lc_timezone
+
+- name: set timezone
+  shell: >-
+    phpenmod -v 7.0 -s ALL lc-timezone
+  when: lc_timezone.changed
+  
+
+- name: PHP session setup 
+  copy:
+    src: resources/75-session.debian.ini
+    dest: "/etc/php/7.0/mods-available/lc-session.ini"
+  register: lc_session
+
+- name: set session
+  shell: >-
+    phpenmod -v 7.0 -s ALL lc-session
+  when: lc_session.changed
+    

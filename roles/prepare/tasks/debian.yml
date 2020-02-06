@@ -1,0 +1,85 @@
+---
+
+- name: Make sure python exists (DEBIAN)
+  raw: test -e /usr/bin/python || (apt -y update && apt install -y python-minimal)
+
+- name: Make sure python-apt works (DEBIAN)
+  raw: test -e  /usr/lib/python2.7/dist-packages/apt || (apt install -y python2.7-apt)
+
+- name: Refresh apt cache
+  apt:
+    update_cache: true
+
+- name: Make sure some prerequisite packages exist
+  apt:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - gpg
+    - apt-transport-https
+    - python-openssl
+
+- name: Add Letsconnect repository key (DEBIAN)
+  apt_key:
+    url: https://repo.letsconnect-vpn.org/2/deb/release/stretch/LC.key
+    state: present
+
+- name: Add Letsconnect repo (DEBIAN)
+  apt_repository:
+    repo: "deb https://repo.eduvpn.org/2/deb/release/stretch/ stretch main"
+    state: present
+
+- name: Install packages
+  apt:
+    name: "{{ item }}"
+    state: latest
+  loop:
+    - vpn-server-node
+    - vpn-server-api
+    - vpn-user-portal
+
+- name: Ensure localisation files for '{{ config_system_locale }}' are available
+  locale_gen:
+    name: "{{ config_system_locale }}"
+    state: present
+
+- name: Ensure localisation files for '{{ config_system_language }}' are available
+  locale_gen:
+    name: "{{ config_system_language }}"
+    state: present
+
+- name: Get current locale and language configuration
+  command: localectl status
+
+  register: locale_status
+  changed_when: false
+
+- name: Parse 'LANG' from current locale and language configuration
+  set_fact:
+    locale_lang: "{{ locale_status.stdout | regex_search('LANG=([^\n]+)', '\\1') | first }}"
+
+- name: Parse 'LANGUAGE' from current locale and language configuration
+  set_fact:
+    locale_language: "{{ locale_status.stdout | regex_search('LANGUAGE=([^\n]+)', '\\1') | default([locale_lang], true) | first }}"
+
+- name: Configure locale to '{{ config_system_locale }}' and language to '{{ config_system_language }}'
+  command: localectl set-locale LANG={{ config_system_locale }} LANGUAGE={{ config_system_language }}
+  changed_when: locale_lang != config_system_locale or locale_language != config_system_language
+
+- name: Generate private key for OpenSSL
+  openssl_privatekey:
+    path: "/etc/ssl/private/{{ ansible_fqdn }}.key"
+
+- name: Generate CSR for self-signed cert
+  openssl_csr:
+    path: "/etc/ssl/private/{{ ansible_fqdn }}.csr"
+    privatekey_path: "/etc/ssl/private/{{ ansible_fqdn }}.key"
+    common_name: "{{ ansible_fqdn }}"
+
+- name: Generate a self-signed certificate with OpenSSL
+  openssl_certificate:
+      path: "/etc/ssl/certs/{{ ansible_fqdn }}.crt"
+      privatekey_path: "/etc/ssl/private/{{ ansible_fqdn }}.key"
+      csr_path: "/etc/ssl/private/{{ ansible_fqdn }}.csr"
+      selfsigned_not_after: "+90d"
+      provider: selfsigned
