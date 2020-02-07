@@ -37,8 +37,6 @@
   copy:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
-  creates: "{ {item.dest }}"
-    
   loop:
     - { src: resources/ssl.debian.conf,
         dest: /etc/apache2/conf-enabled/ssl.conf }
@@ -59,7 +57,7 @@
   notify: apache
   when: vpnconfig.stdout.find(ansible_fqdn) != 1
 
-- name: PHP timezone setup 
+- name: PHP timezone setup
   copy:
     src: resources/70-timezone.ini
     dest: "/etc/php/7.0/mods-available/lc-timezone.ini"
@@ -69,9 +67,9 @@
   shell: >-
     phpenmod -v 7.0 -s ALL lc-timezone
   when: lc_timezone.changed
-  
 
-- name: PHP session setup 
+
+- name: PHP session setup
   copy:
     src: resources/75-session.debian.ini
     dest: "/etc/php/7.0/mods-available/lc-session.ini"
@@ -81,4 +79,4 @@
   shell: >-
     phpenmod -v 7.0 -s ALL lc-session
   when: lc_session.changed
-    
+
