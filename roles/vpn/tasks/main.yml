@@ -1,0 +1,16 @@
+---
+
+- name: Update IPv4 CIDR and IPv6 prefix to random ranges
+  command: "/usr/bin/vpn-server-api-update-ip --profile internet --host {{ \
+  ansible_fqdn }}"
+  args: 
+    creates: "config/config.php" 
+  
+
+- name: Initialize CA
+  command: "/usr/bin/vpn-server-api-init"
+  become_user: www-data
+  args: 
+    creates: "/usr/share/vpn-server-api/data/db.sqlite"
+  
+

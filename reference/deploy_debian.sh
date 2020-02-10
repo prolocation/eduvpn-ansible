@@ -15,7 +15,7 @@ printf "DNS name of the Web Server [%s]: " "${MACHINE_HOSTNAME}"; read -r WEB_FQ
 WEB_FQDN=${WEB_FQDN:-${MACHINE_HOSTNAME}}
 
 # DNS name of the OpenVPN Server (defaults to DNS name of the Web Server
-# use different name if you want to allow moving the OpenVPN processes to 
+# use different name if you want to allow moving the OpenVPN processes to
 # another machine in the future without breaking client configuration files
 printf "DNS name of the OpenVPN Server [%s]: " "${WEB_FQDN}"; read -r VPN_FQDN
 VPN_FQDN=${VPN_FQDN:-${WEB_FQDN}}
@@ -66,11 +66,11 @@ openssl req \
 # APACHE
 ###############################################################################
 
-a2enmod ssl headers rewrite proxy_fcgi setenvif 
+a2enmod ssl headers rewrite proxy_fcgi setenvif
 a2enconf php7.0-fpm
 
 # VirtualHost
-cp resources/ssl.debian.conf /etc/apache2/mods-available/ssl.conf 
+cp resources/ssl.debian.conf /etc/apache2/mods-available/ssl.conf
 cp resources/vpn.example.debian.conf "/etc/apache2/sites-available/${WEB_FQDN}.conf"
 cp resources/localhost.debian.conf /etc/apache2/sites-available/localhost.conf
 
@@ -147,7 +147,7 @@ systemctl restart apache2
 ###############################################################################
 
 # NOTE: the openvpn-server systemd unit file only allows 10 OpenVPN processes
-# by default! 
+# by default!
 
 # generate the OpenVPN server configuration files and certificates
 vpn-server-node-server-config
@@ -171,7 +171,7 @@ systemctl restart netfilter-persistent
 REGULAR_USER="demo"
 REGULAR_USER_PASS=$(pwgen 12 -n 1)
 
-# the "admin" user is a special user, listed by ID to have access to "admin" 
+# the "admin" user is a special user, listed by ID to have access to "admin"
 # functionality in /etc/vpn-user-portal/config.php (adminUserIdList)
 ADMIN_USER="admin"
 ADMIN_USER_PASS=$(pwgen 12 -n 1)
