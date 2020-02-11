@@ -1,0 +1,222 @@
+#!/usr/bin/env python3
+#coding: utf-8 -*-
+#
+# Module to write a fact to the filesystem in yaml format
+#
+# Written by Emiel Kollof
+#
+# This module is free software: you can redistribute it and/or modify
+# it under the terms of the MIT license.
+#
+# This software is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# MIT License for more details.
+#
+# You should have received a copy of the MIT.
+# If not, see <http://opensource.org/licenses/MIT>.
+
+DOCUMENTATION = '''
+---
+module: storefact
+short_description: Store a fact on the filesystem as yaml
+requirements: []
+version_added: 2.9.4
+author: Emiel Kollof
+description:
+    - Store a fact on the filesystem as yaml
+options:
+    name:
+        required: true
+        description:
+            - Name of variable to store.
+    value:
+        required: false
+        description:
+            - The value if "present"
+    state:
+        required: false
+        default: "present"
+        choices: [ present, absent ]
+        description:
+            - Whether the var should be present or absent
+    path:
+        required: false
+        default: "factfile"
+        description:
+            - Where the fact should be stored
+'''
+EXAMPLES= '''
+# Store a fact in the inventory host_var
+- name: Store a value in the host_var for this host
+  storefact:
+    name: admin_pass
+    value:  "{{ lookup('password', '/dev/null length=12') }}"
+    path: 'inventory/host_vars/{{ ansible_fqdn }}/admin.yml'
+'''
+
+import re
+import os
+import yaml
+from ansible.module_utils.basic import *
+
+class storefact(object):
+    def __init__(self, module, name, value, state, path):
+        self.module    = module
+        self.name      = name
+        self.changed   = False
+        self.value     = value
+        self.state     = state
+        self.path      = path
+
+    def exists(self):
+        '''
+            Check if a fact key exists. Return False when it doesn't, or when the
+            fact yaml doesn't.
+        '''
+        if os.path.isfile(self.path):
+            facts = None
+            with open(self.path, 'r') as fp:
+                facts = yaml.safe_load(fp)
+                fp.close()
+            if not facts:
+                # Empty file.
+                return False
+            if self.name in facts:
+                return True
+            else:
+                return False
+        else:
+            # File is not there
+            return False
+
+    def contains(self):
+        '''
+            Check if the yaml aleady contains this fact value.
+        '''
+        if os.path.isfile(self.path):
+            facts = None
+            with open(self.path, 'r') as fp:
+                facts = yaml.safe_load(fp)
+                fp.close()
+            if self.value in facts[self.name]:
+                return True
+            else:
+                return False
+        else:
+            # File is not there, therefore the fact value isn't there as well.
+            return False
+
+    def create(self):
+        '''
+            Create file with fact inside, or append fact when it doesn't exist
+            in the yaml
+        '''
+        facts = dict()
+        if os.path.isfile(self.path):
+            # File exists, so work on yaml file
+            with open(self.path, 'r') as fp:
+                facts = yaml.safe_load(fp)
+                fp.close()
+            # Place fact in dict (or overwrite it), then store it back
+            facts[self.name] = self.value
+            fp = open(self.path, 'w')
+            yaml.dump(facts, fp, allow_unicode=True)
+            self.changed = True
+            return True
+        else:
+            # File doesn't exist, so let's create it (and any underlying
+            # directories)
+            #
+            if not os.path.exists(os.path.dirname(self.path)):
+                try:
+                    os.makedirs(os.path.dirname(self.path))
+                except OSError as ex:
+                    if ex.errno != errno.EEXIST:
+                        raise
+
+            facts[self.name] = self.value
+            fp = open(self.path, 'w')
+            yaml.dump(facts, fp, allow_unicode=True)
+            self.changed = True
+        return self.changed
+
+    def destroy(self):
+        '''
+            Open file and remove fact from file, return False when file doesn't
+            exist
+        '''
+        if os.path.isfile(self.path):
+            with open(self.path, 'r') as fp:
+                facts = yaml.safe_load(fp)
+                fp.close()
+            value = facts.pop(self.name, None)
+            self.changed = True
+            # fact does not exist
+            if not value:
+                self.changed = False
+                return self.changed
+            # Check if there's any data left. If no, unlink
+            if not facts:
+                os.unlink(self.path)
+                return self.changed
+            # Fact is gone, let's write it out
+            fp = open(self.path, 'w')
+            yaml.dump(facts, fp, allow_unicode=True)
+        else:
+            # No need to destroy, file doesn't exist
+            return self.changed
+
+def main():
+    module = AnsibleModule(
+        argument_spec = dict(
+            name = dict(
+                required = True
+            ),
+            value = dict(
+                default = None,
+                required = False
+            ),
+            state = dict(
+                default = 'present',
+                choices = [ 'present', 'absent' ]
+            ),
+            path = dict(
+                required = True
+            )
+        )
+    )
+
+    name = module.params.pop('name')
+    value = module.params.pop('value')
+    state = module.params.pop('state')
+    path = module.params.pop('path')
+
+    result = {
+        'name'  : name,
+        'value' : value,
+        'state' : state,
+        'path' : state,
+    }
+
+    rcValue = storefact(module, name, value, state, path)
+
+    if state == 'present':
+        not rcValue.exists() and rcValue.create()
+    elif state == 'absent':
+        rcValue.exists and rcValue.destroy()
+
+    result['changed'] = rcValue.changed
+
+    module.exit_json(**result)
+
+
+if __name__ == '__main__':
+    main()
+
+
+
+
+
+
+
