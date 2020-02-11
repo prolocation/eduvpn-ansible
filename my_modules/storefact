@@ -45,6 +45,11 @@ options:
         default: "factfile"
         description:
             - Where the fact should be stored
+    vault:
+        required: false
+        default: false
+        description:
+            - Encrypt the fact with ansible vault. ansible-vault module required.
 '''
 EXAMPLES= '''
 # Store a fact in the inventory host_var
@@ -60,7 +65,20 @@ EXAMPLES= '''
 import re
 import os
 import yaml
+
+try:
+    import ansible_vault
+except ImportError:
+    pass
+
 from ansible.module_utils.basic import *
+
+# Utility
+def checkvault():
+    if "ansible_vault" in sys.modules:
+        return True
+    return False
+
 
 class storefact(object):
     def __init__(self, module, name, value, state, path):
@@ -158,6 +176,7 @@ class storefact(object):
         else:
             # No need to destroy, file doesn't exist
             return self.changed
+
 
 def main():
     module = AnsibleModule(
