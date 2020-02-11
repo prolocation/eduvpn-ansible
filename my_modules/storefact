@@ -111,6 +111,7 @@ class storefact(object):
             facts[self.name] = self.value
             fp = open(self.path, 'w')
             yaml.dump(facts, fp, allow_unicode=True)
+            fp.close()
             self.changed = True
             return True
         else:
@@ -127,6 +128,7 @@ class storefact(object):
             facts[self.name] = self.value
             fp = open(self.path, 'w')
             yaml.dump(facts, fp, allow_unicode=True)
+            fp.close()
             self.changed = True
         return self.changed
 
@@ -152,6 +154,7 @@ class storefact(object):
             # Fact is gone, let's write it out
             fp = open(self.path, 'w')
             yaml.dump(facts, fp, allow_unicode=True)
+            fp.close()
         else:
             # No need to destroy, file doesn't exist
             return self.changed
