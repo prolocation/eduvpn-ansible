@@ -85,28 +85,15 @@ class storefact(object):
                 # Empty file.
                 return False
             if self.name in facts:
-                return True
+                # Check if value is the same
+                if self.value in facts[self.name]:
+                    return True
+                else:
+                    return False
             else:
                 return False
         else:
             # File is not there
-            return False
-
-    def contains(self):
-        '''
-            Check if the yaml aleady contains this fact value.
-        '''
-        if os.path.isfile(self.path):
-            facts = None
-            with open(self.path, 'r') as fp:
-                facts = yaml.safe_load(fp)
-                fp.close()
-            if self.value in facts[self.name]:
-                return True
-            else:
-                return False
-        else:
-            # File is not there, therefore the fact value isn't there as well.
             return False
 
     def create(self):
