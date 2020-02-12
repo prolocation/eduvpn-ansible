@@ -1,0 +1,2 @@
+delete from version where current_version = '0000000000';
+insert into version (current_version) values('{{ sqlite_schema_version }}');

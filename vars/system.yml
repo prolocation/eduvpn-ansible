@@ -3,3 +3,8 @@ config_system_language: 'nl_NL.UTF-8'
 self_signed_certs:
   - key: "/etc/ssl/private/{{ ansible_hostname }}.key"
     cert: "/etc/ssl/private/{{ ansible_hostname }}.cert"
+portalbasedir: "/usr/share/vpn-user-portal"
+serverapibasedir: "/usr/share/vpn-server-api"
+sqlite_schema_version: "2019032701"
+eduvpn_sslh: false
+

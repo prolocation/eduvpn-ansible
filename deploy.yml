@@ -5,7 +5,7 @@
     - vars/system.yml
 
   roles:
-    - "prepare"
-    - "apache"
-    - "vpn"
+    - prepare
+    - apache
+    - { role: vpn, deployment: True" }
 

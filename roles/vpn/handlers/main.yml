@@ -1,0 +1,17 @@
+---
+
+- name: firewall
+  service:
+    name: netfilter-persistent
+    state: restarted
+
+- name: openvpn
+  service:
+    name: openvpn
+    state: restarted
+
+- name: systemd
+  systemd:
+    daemon_reload: yes
+
+

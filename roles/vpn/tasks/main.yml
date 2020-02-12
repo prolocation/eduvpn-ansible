@@ -10,31 +10,43 @@
   command: "/usr/bin/vpn-server-api-init"
   become_user: www-data
   args:
-    creates: "/usr/share/vpn-server-api/data/db.sqlite"
+    creates: "{{ serverapibasedir }}/data/db.sqlite"
 
-- name: Generate admin_pass
-  set_fact:
-    admin_pass: "{{ lookup('password', '/dev/null length=12') }}"
-  when: admin_pass is not defined
+- name: Regenerate OpenVPN config
+  command: "/usr/bin/vpn-server-node-server-config"
+  notify: openvpn
 
-- name: Generate guest_pass
-  set_fact:
-    guest_pass: "{{ lookup('password', '/dev/null length=12') }}"
-  when: guest_pass is not defined
+- name: Generate/install firewall rules
+  command: "/usr/bin/vpn-server-node-generate-firewall --install"
+  notify: firewall
 
-- name: Store admin_pass
-  storefact:
-      name: admin_pass
-      value: "{{ admin_pass }}"
-      path: "inventory/host_vars/{{ ansible_fqdn }}/accounts.yml"
-  delegate_to: localhost
-  become: false
+- name: Check if user db exists.
+  stat:
+      path: "{{ portalbasedir }}/data/db.sqlite"
+  register: userdb
 
+- name: Copy initial user db schema DDL
+  copy:
+      src: "resources/schema.sql"
+      dest: "{{ portalbasedir }}/schema/{{ sqlite_schema_version }}.schema"
 
-- name: Store guest_pass
-  storefact:
-      name: guest_pass
-      value: "{{ guest_pass }}"
-      path: "inventory/host_vars/{{ ansible_fqdn }}/accounts.yml"
-  delegate_to: localhost
-  become: false
+- name: Generate initial version data
+  template:
+      src: "templates/init.sql.j2"
+      dest: "/tmp/version.sql"
+
+- name: Create initial user db
+  shell: >-
+      sqlite3 {{ portalbasedir }}/data/db.sqlite -init {{ portalbasedir }}/schema/*.schema
+  when: userdb.stat.exists == False
+  become_user: "www-data"
+
+- name: Set version data for user db
+  shell: >-
+      sqlite3 {{ portalbasedir }}/data/db.sqlite < /tmp/version.sql
+  when: userdb.stat.exists == False
+  become_user: "www-data"
+
+- name: Add users
+  import_tasks: users.yml
+  when: deployment == True

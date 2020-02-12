@@ -6,18 +6,19 @@
 - name: Make sure python-apt works (DEBIAN)
   raw: test -e  /usr/lib/python2.7/dist-packages/apt || (apt install -y python2.7-apt)
 
-- name: Refresh apt cache
-  apt:
-    update_cache: true
-
 - name: Make sure some prerequisite packages exist
   apt:
     name: "{{ item }}"
     state: present
+    update_cache: yes
   loop:
     - gpg
     - apt-transport-https
     - python-openssl
+    - curl
+    - sudo
+    - pwgen
+    - iptables-persistent
 
 - name: Add Letsconnect repository key (DEBIAN)
   apt_key:
@@ -33,10 +34,28 @@
   apt:
     name: "{{ item }}"
     state: latest
+    update_cache: yes
   loop:
-    - vpn-server-node
-    - vpn-server-api
+    - php-fkooman-otp-verifier
+    - php-fkooman-oauth2-server
     - vpn-user-portal
+    - vpn-server-api
+    - vpn-server-node
+    - vpn-portal-artwork-eduvpn
+
+- name: Install sslh
+  apt:
+    pkg:
+      - sslh
+    state: present
+  when: eduvpn_sslh == True
+
+- name: Deinstall sslh
+  apt:
+    pkg:
+      - sslh
+    state: absent
+  when: eduvpn_sslh == False
 
 - name: Ensure localisation files for '{{ config_system_locale }}' are available
   locale_gen:

@@ -33,6 +33,20 @@
     - vpn-server-api
     - vpn-user-portal
 
+- name: Replace ServerTokens in Apache2 configuration (Debian)
+  replace:
+    dest: /etc/apache2/conf-available/security.conf
+    regexp: '^ServerTokens (OS|Full|Major|Minor)$'
+    replace: 'ServerTokens Prod'
+    backup: yes
+  notify: apache
+
+- name: Disable default site in apache
+  file:
+    state: absent
+    path: "/etc/apache2/sites-enabled/000-default.conf"
+  notify: apache
+
 - name: Copy VPN configs
   copy:
     src: "{{ item.src }}"
@@ -45,6 +59,7 @@
     - { src: resources/localhost.debian.conf,
         dest: /etc/apache2/sites-available/localhost.conf }
 
+
 - name: Read VPN virthualhost file
   shell: cat /etc/apache2/sites-available/{{ ansible_fqdn }}.conf
   register: vpnconfig
@@ -56,6 +71,13 @@
     replace: "{{ ansible_fqdn }}"
   notify: apache
   when: vpnconfig.stdout.find(ansible_fqdn) != 1
+
+- name: Enable VPN configs
+  command: "a2ensite {{ item }}"
+  loop:
+    - localhost
+    - "{{ ansible_fqdn }}"
+  notify: apache
 
 - name: PHP timezone setup
   copy:
