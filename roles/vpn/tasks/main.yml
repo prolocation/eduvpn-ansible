@@ -47,6 +47,50 @@
   when: userdb.stat.exists == False
   become_user: "www-data"
 
+- name: Make sure OpenVPN service is enabled
+  service:
+      name: openvpn
+      state: started
+      enabled: yes
+  notify: openvpn
+
+- name: Have a place to add custom openvpn-server settings
+  file:
+    path: '/etc/systemd/system/openvpn-server@.service.d/'
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Override system openvpn-server max nproc
+  copy:
+    src: 'resources/openvpn-server.service-override.conf'
+    dest: '/etc/systemd/system/openvpn-server@.service.d/override.conf'
+  notify: systemd
+
+- name: be sure we have source routing tables
+  copy:
+    src: 'resources/rt_tables'
+    dest: '/etc/iproute2/rt_tables'
+
+- name: be sure tun is loaded at boottime
+  copy:
+    src: 'resources/modules-tun.conf'
+    dest: '/etc/modules-load.d/tun.conf'
+
+
+- name: be sure IP forwarding is enabled
+  copy:
+    src: 'resources/forwarding.conf'
+    dest: '/etc/sysctl.d/70-forwarding.conf'
+  notify: sysctl
+
+- name: add helper to create vpn services
+  copy:
+    src: 'resources/vpn-services-init'
+    dest: '/usr/local/sbin/vpn-services-init'
+    mode: 0755
+
 - name: Add users
   import_tasks: users.yml
   when: deployment == True

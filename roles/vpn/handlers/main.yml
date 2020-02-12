@@ -14,4 +14,5 @@
   systemd:
     daemon_reload: yes
 
-
+- name: sysctl
+  command: "sysctl --system"
