@@ -8,6 +8,8 @@ connect remotely to your VPN nodes to deploy and configure them.
 
 ## Requirements
 
+(_NOTE_: Don't install this on your target hosts. Ansible is agentless.)
+
 - ansible
 - python-yaml (might be included with ansible, not sure)
 - Up to date target hosts (make sure to apt update/upgrade)
