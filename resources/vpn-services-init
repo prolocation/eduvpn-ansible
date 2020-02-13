@@ -1,0 +1,13 @@
+#!/bin/sh
+
+set -e
+
+instance=$1
+cd /etc/openvpn/server
+for f in `ls *.conf`
+do
+    sid=`echo $f|sed 's/.conf$//'`
+    systemctl enable --now openvpn-server@$sid
+    systemctl start openvpn-server@$sid
+done
+

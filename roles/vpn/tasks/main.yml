@@ -1,10 +1,16 @@
 ---
 
+- name: Make sure the apply_changes script is present on the system
+  copy:
+      src: "resources/apply_changes.sh"
+      dest: "/usr/bin/apply_changes.sh"
+      mode: 0755
+
 - name: Update IPv4 CIDR and IPv6 prefix to random ranges
   command: "/usr/bin/vpn-server-api-update-ip --profile internet --host {{ \
   ansible_fqdn }}"
   args:
-    creates: "config/config.php"
+    creates: "/etc/vpn-server-api/config.php"
 
 - name: Initialize CA
   command: "/usr/bin/vpn-server-api-init"
@@ -93,4 +99,7 @@
 
 - name: Add users
   import_tasks: users.yml
-  when: deployment == True
+  when: deployment is defined and deployment == True
+
+- name: Apply Changes
+  command: "/usr/bin/apply_changes.sh"
