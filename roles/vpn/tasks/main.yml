@@ -100,6 +100,3 @@
 - name: Add users
   import_tasks: users.yml
   when: deployment is defined and deployment == True
-
-- name: Apply Changes
-  command: "/usr/bin/apply_changes.sh"

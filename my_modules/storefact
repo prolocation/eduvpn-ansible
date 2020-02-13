@@ -215,7 +215,7 @@ def main():
     if state == 'present':
         not rcValue.exists() and rcValue.create()
     elif state == 'absent':
-        rcValue.exists and rcValue.destroy()
+        rcValue.exists() and rcValue.destroy()
 
     result['changed'] = rcValue.changed
 
