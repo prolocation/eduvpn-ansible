@@ -18,13 +18,13 @@
   args:
     creates: "{{ serverapibasedir }}/data/db.sqlite"
 
-- name: Regenerate OpenVPN config
-  command: "/usr/bin/vpn-server-node-server-config"
-  notify: openvpn
 
-- name: Generate/install firewall rules
-  command: "/usr/bin/vpn-server-node-generate-firewall --install"
-  notify: firewall
+- name: Make sure OpenVPN service is enabled
+  service:
+      name: openvpn
+      state: started
+      enabled: yes
+  notify: openvpn
 
 - name: Check if user db exists.
   stat:
@@ -53,12 +53,6 @@
   when: userdb.stat.exists == False
   become_user: "www-data"
 
-- name: Make sure OpenVPN service is enabled
-  service:
-      name: openvpn
-      state: started
-      enabled: yes
-  notify: openvpn
 
 - name: Have a place to add custom openvpn-server settings
   file:
@@ -100,3 +94,18 @@
 - name: Add users
   import_tasks: users.yml
   when: deployment is defined and deployment == True
+
+- name: Make sure apache is running
+  service:
+      name: apache2
+      state: started
+      enabled: yes
+
+- name: Regenerate OpenVPN config
+  command: "/usr/bin/vpn-server-node-server-config"
+  notify: openvpn
+
+- name: Generate/install firewall rules
+  command: "/usr/bin/vpn-server-node-generate-firewall --install"
+  notify: firewall
+

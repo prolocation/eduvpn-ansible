@@ -19,6 +19,7 @@
     - sudo
     - pwgen
     - iptables-persistent
+    - sqlite3
 
 - name: Add Letsconnect repository key (DEBIAN)
   apt_key:
