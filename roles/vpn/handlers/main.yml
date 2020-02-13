@@ -6,9 +6,7 @@
     state: restarted
 
 - name: openvpn
-  service:
-    name: openvpn
-    state: restarted
+  command: "/usr/bin/apply_changes.sh"
 
 - name: systemd
   systemd:
