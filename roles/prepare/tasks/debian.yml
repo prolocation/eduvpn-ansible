@@ -98,8 +98,8 @@
 
 - name: Generate a self-signed certificate with OpenSSL
   openssl_certificate:
-      path: "/etc/ssl/certs/{{ ansible_fqdn }}.crt"
-      privatekey_path: "/etc/ssl/private/{{ ansible_fqdn }}.key"
-      csr_path: "/etc/ssl/private/{{ ansible_fqdn }}.csr"
+      path: "{{ cert_location.cert }}"
+      privatekey_path: "{{ cert_location.key }}"
+      csr_path: "{{ cert_location.csr }}"
       selfsigned_not_after: "+90d"
       provider: selfsigned

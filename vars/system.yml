@@ -1,10 +1,32 @@
 config_system_locale: 'nl_NL.UTF-8'
 config_system_language: 'nl_NL.UTF-8'
-self_signed_certs:
-  - key: "/etc/ssl/private/{{ ansible_hostname }}.key"
-    cert: "/etc/ssl/private/{{ ansible_hostname }}.cert"
 portalbasedir: "/usr/share/vpn-user-portal"
 serverapibasedir: "/usr/share/vpn-server-api"
 sqlite_schema_version: "2019032701"
-eduvpn_sslh: false
+eduvpn_sslh: False
+
+# Letsencrypt
+letsencrypt: True
+acme_challenge_type: http-01
+acme_directory: https://acme-v02.api.letsencrypt.org/directory
+acme_version: 2
+acme_email: devnull@prolocation.net # Change this. Or not.
+letsencrypt_dir: /etc/letsencrypt
+letsencrypt_keys_dir: /etc/letsencrypt/keys
+letsencrypt_csrs_dir: /etc/letsencrypt/csrs
+letsencrypt_certs_dir: /etc/letsencrypt/certs
+letsencrypt_account_key: /etc/letsencrypt/account/account.key
+domain_name: "{{ ansible_fqdn }}"
+
+# Custom Certificate from resources/{{ host_fqdn }}.key/crt
+customcert: False
+
+# Generate a self-signed certificate.
+self_signed: False
+
+# What should the certs be called?
+cert_location:
+  key: "/etc/ssl/private/{{ ansible_fqdn }}.key"
+  cert: "/etc/ssl/certs/{{ ansible_fqdn }}.crt"
+  csr: "/etc/ssl/private/{{ ansible_fqdn }}.csr"
 

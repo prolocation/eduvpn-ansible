@@ -1,0 +1,15 @@
+---
+# Installs, Generates or fetches SSL certs
+
+- name: Bail out
+  fail:
+    msg: "Pick only ONE active SSL method. Check your host_vars and system vars if things aren't defined doubly"
+  when: letsencrypt == True and customcert == True
+
+- name: Letsencrypt was chosen
+  import_tasks: letsencrypt.yml
+  when: letsencrypt is defined
+
+- name: Custom was chosen
+  import_tasks: customcert.yml
+  when: customcert is defined

@@ -6,6 +6,7 @@
 
   roles:
     - prepare
-    - apache
+    - apache 
+    - ssl
     - { role: vpn, deployment: True" }
 
