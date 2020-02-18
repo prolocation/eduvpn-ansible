@@ -8,7 +8,8 @@ eduvpn_sslh: False
 # Letsencrypt
 letsencrypt: True
 acme_challenge_type: http-01
-acme_directory: https://acme-v02.api.letsencrypt.org/directory
+#acme_directory: https://acme-v02.api.letsencrypt.org/directory
+acme_directory: https://acme-staging-v02.api.letsencrypt.org/directory
 acme_version: 2
 acme_email: devnull@prolocation.net # Change this. Or not.
 letsencrypt_dir: /etc/letsencrypt
@@ -24,7 +25,7 @@ customcert: False
 # Generate a self-signed certificate.
 self_signed: False
 
-# What should the certs be called?
+# What should the certs be called? (this can be overriden by letsencrypt)
 cert_location:
   key: "/etc/ssl/private/{{ ansible_fqdn }}.key"
   cert: "/etc/ssl/certs/{{ ansible_fqdn }}.crt"

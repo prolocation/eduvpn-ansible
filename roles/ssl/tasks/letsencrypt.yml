@@ -20,13 +20,23 @@
     path: "/etc/letsencrypt/certs/{{ ansible_fqdn }}.crt"
   register: lecert
 
+- name: Get data for account key
+  stat:
+    path: "{{ letsencrypt_account_key }}"
+  register: accountkey
+
+- name: Get data for private key
+  stat:
+    path: "/etc/letsencrypt/keys/{{ domain_name }}.key"
+  register: domainkey
+
 - name: "Generate a Let's Encrypt account key"
   shell: "if [ ! -f {{ letsencrypt_account_key }} ]; then openssl genrsa 4096 | sudo tee {{ letsencrypt_account_key }}; fi"
-  when: not lecert.stat.exists
+  when: not accountkey.stat.exists
 
 - name: "Generate Let's Encrypt private key"
   shell: "openssl genrsa 4096 | sudo tee /etc/letsencrypt/keys/{{ domain_name }}.key"
-  when: not lecert.stat.exists
+  when: not domainkey.stat.exists
 
 - name: "Generate Let's Encrypt CSR"
   shell: "openssl req -new -sha256 -key /etc/letsencrypt/keys/{{ domain_name }}.key -subj \"/CN={{ domain_name }}\" -reqexts SAN -config <(cat /etc/ssl/openssl.cnf <(printf \"\n[SAN]\nsubjectAltName=DNS:{{ domain_name }}\")) | sudo tee /etc/letsencrypt/csrs/{{ domain_name }}.csr"
@@ -46,7 +56,7 @@
   file:
     path: "/etc/letsencrypt/certs/{{ ansible_fqdn }}.crt"
     state: absent
-  when: certrenew.valid_at.twoweeks == False
+  when: lecert.stat.exists and certrenew.valid_at.twoweeks == False
 
 - name: "Begin Let's Encrypt challenges"
   acme_certificate:
