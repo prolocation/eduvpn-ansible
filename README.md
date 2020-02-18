@@ -13,6 +13,7 @@ connect remotely to your VPN nodes to deploy and configure them.
 - ansible
 - python-yaml (might be included with ansible, not sure)
 - Up to date target hosts (make sure to apt update/upgrade)
+- DNS entries for target hosts (if you want Let's Encrypt to work)
 
 ## How it works
 
@@ -33,3 +34,6 @@ See wiki. I plan to document some stuff there.
 * Generating a self-signed cert is default. Make sure you don't enable *both*
   letsencrypt and customcert in system vars or host vars at the same time. The
   playbook will refuse to work.
+* When you use letsencrypt:
+  * Is the host FQDN known in DNS?
+  * Are the http ports firewalled (80/443)? (they shouldn't be)
