@@ -54,8 +54,13 @@
 
 - name: Clean up old keys
   file:
-    path: "/etc/letsencrypt/certs/{{ ansible_fqdn }}.crt"
+    path: "{{ item }}"
     state: absent
+  loop:
+    - "/etc/letsencrypt/certs/{{ ansible_fqdn }}.crt"
+    - "/etc/letsencrypt/certs/chain_{{ ansible_fqdn }}.crt"
+    - "/etc/letsencrypt/certs/fullchain_{{ ansible_fqdn }}.crt"
+
   when: lecert.stat.exists and certrenew.valid_at.twoweeks == False
 
 - name: "Begin Let's Encrypt challenges"
@@ -106,5 +111,14 @@
     fullchain_dest: "{{ letsencrypt_certs_dir }}/fullchain_{{ domain_name }}"
     data: "{{ acme_challenge_your_domain }}"
   when: not lecert.stat.exists or certrenew.valid_at.twoweeks == False
+
+- name: Install LE keys
+  shell: >-
+    cp /etc/letsencrypt/keys/{{ ansible_fqdn }}.key {{ cert_location.key }}
+
+- name: Install LE cert
+  shell: >-
+    cp /etc/letsencrypt/certs/fullchain_{{ ansible_fqdn }} {{ cert_location.cert }}
+  notify: apache
 
 
