@@ -5,7 +5,7 @@ serverapibasedir: "/usr/share/vpn-server-api"
 sqlite_schema_version: "2019032701"
 eduvpn_sslh: False
 
-# Letsencrypt
+# Letsencrypt (you can override this in host_vars)
 letsencrypt: True
 acme_challenge_type: http-01
 #acme_directory: https://acme-v02.api.letsencrypt.org/directory
@@ -25,7 +25,7 @@ customcert: False
 # Generate a self-signed certificate.
 self_signed: False
 
-# What should the certs be called? (this can be overriden by letsencrypt)
+# Where should the active certs be stored?
 cert_location:
   key: "/etc/ssl/private/{{ ansible_fqdn }}.key"
   cert: "/etc/ssl/certs/{{ ansible_fqdn }}.crt"
