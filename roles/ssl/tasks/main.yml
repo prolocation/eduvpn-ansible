@@ -8,8 +8,8 @@
 
 - name: Letsencrypt was chosen
   import_tasks: letsencrypt.yml
-  when: letsencrypt is defined
+  when: letsencrypt == True
 
 - name: Custom was chosen
   import_tasks: customcert.yml
-  when: customcert is defined
+  when: customcert == True

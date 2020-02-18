@@ -1,7 +1,4 @@
 ---
-# Let's grab a letsencrypt cert
-#
----
 
 - name: Copy keys to host
   copy:

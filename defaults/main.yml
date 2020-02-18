@@ -1,10 +1,3 @@
-config_system_locale: 'nl_NL.UTF-8'
-config_system_language: 'nl_NL.UTF-8'
-portalbasedir: "/usr/share/vpn-user-portal"
-serverapibasedir: "/usr/share/vpn-server-api"
-sqlite_schema_version: "2019032701"
-eduvpn_sslh: False
-
 # Letsencrypt (you can override this in host_vars)
 letsencrypt: True
 acme_challenge_type: http-01
