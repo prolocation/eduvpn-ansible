@@ -1,9 +1,0 @@
-- hosts: all
-  become: yes
-
-  vars_files:
-    - vars/system.yml
-
-  roles:
-    - vpn
-

@@ -2,11 +2,11 @@
 
 - name: Copy keys to host
   copy:
-    src: "resources/SSL/{{ ansible_fqdn }}/{{ ansible_fqdn }}.key"
+    src: "config/{{ ansible_fqdn }}/ssl/{{ ansible_fqdn }}.key"
     dest: "{{ cert_location.key }}"
 
 - name: Copy cert to host
   copy:
-    src: "resources/SSL/{{ ansible_fqdn }}/{{ ansible_fqdn }}.crt"
+    src: "config/{{ ansible_fqdn }}/ssl/{{ ansible_fqdn }}.crt"
     dest: "{{ cert_location.cert }}"
   notify: apache
