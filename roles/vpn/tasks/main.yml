@@ -95,10 +95,10 @@
   import_tasks: users.yml
   when: deployment is defined and deployment == True
 
-- name: Make sure apache is running
+- name: Make sure apache is running with latest config
   service:
       name: apache2
-      state: started
+      state: restarted
       enabled: yes
 
 - name: Regenerate OpenVPN config
