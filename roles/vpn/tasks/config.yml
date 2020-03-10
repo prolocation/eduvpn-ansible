@@ -1,0 +1,87 @@
+---
+
+# Custom views
+
+- name: Check if we have local custom footer
+  become: false
+  local_action: stat path=config/{{ ansible_fqdn }}/views/customFooter.php
+  register: viewfooter
+
+- name: View folder
+  file:
+    path: '/etc/vpn-user-portal/views'
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: 0755
+
+- name: Copy local file to remote
+  copy:
+    src: config/{{ ansible_fqdn }}/views/customFooter.php
+    dest: /etc/vpn-user-portal/views/customFooter.php
+    mode: 0644
+  when: viewfooter.stat.exists == True
+
+
+- name: Check if we have local custom error
+  become: false
+  local_action: stat path=config/{{ ansible_fqdn }}/views/errorPage.php
+  register: viewerror
+
+- name: Copy local file to remote
+  copy:
+    src: config/{{ ansible_fqdn }}/views/errorPage.php
+    dest: /etc/vpn-user-portal/views/errorPage.php
+    mode: 0644
+  when: viewerror.stat.exists == True
+
+
+- name: check if link files exist
+  become: false
+  local_action: stat path=config/{{ ansible_fqdn }}/link
+  register: linkfiles
+
+- name: copy link files
+  copy:
+    src: 'config/{{ ansible_fqdn }}/link/'
+    dest: '/etc/systemd/network'
+  when: linkfiles.stat.exists == True
+
+- name: check if net config exists
+  become: false
+  local_action: stat path=config/{{ ansible_fqdn }}/interfaces
+  register: interfaces
+
+- name: copy net config
+  copy:
+    src: 'config/{{ ansible_fqdn }}/interfaces/'
+    dest: '/etc/network/interfaces.d'
+    when: interfaces.stat.exists == True
+
+- name: make sure classic config is absent
+  file:
+    path: '/etc/network/interfaces.d/50-cloud-init.cfg'
+    state: absent
+
+- name: check if server-api config exists
+  become: false
+  local_action: stat path=config/{{ ansible_fqdn }}/profiles/config.php.jinja
+  register: serverapi
+
+- name: add configuration for server-api
+  template:
+    src: 'config/{{ ansible_fqdn }}/profiles/config.php.jinja'
+    dest: '/etc/vpn-server-api/config.php'
+  when: serverapi.stat.exists == True
+
+- name: check if user portal config exists
+  become: false
+  local_action: stat path=config/{{ ansible_fqdn }}/portal/config.php.jinja
+  register: userportal
+
+- name: add configuration for user-portal
+  template:
+    src: 'config/{{ ansible_fqdn }}/portal/config.php.jinja'
+    dest: '/etc/vpn-user-portal/config.php'
+  when: userportal.stat.exists == True
+

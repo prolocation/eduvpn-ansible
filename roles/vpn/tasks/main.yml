@@ -101,6 +101,9 @@
       state: restarted
       enabled: yes
 
+- name: take care of system configuration
+  import_tasks: config.yml
+
 - name: Regenerate OpenVPN config
   command: "/usr/bin/vpn-server-node-server-config"
   notify: openvpn
